@@ -3,21 +3,19 @@ import bodyParser from 'body-parser';
 import dotenv from 'dotenv';
 import { WebClient } from '@slack/web-api';
 
-// 環境変数の読み込み
 dotenv.config();
+const slackToken = process.env.SLACK_API_TOKEN;
+const port = process.env?.PORT || 80;
+const CHANNEL_ID = process.env.CHANNEL_ID as string;
 
-// Expressアプリのセットアップ
 const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Slack APIクライアントの作成
-const slackToken = process.env.SLACK_API_TOKEN;
 const web = new WebClient(slackToken);
 
-// タイマーハンドラー
 function sendTimerMessage() {
-  const channelId = 'YOUR_CHANNEL_ID'; // メッセージを送信するチャンネルのIDを設定します
+  const channelId = 'YOUR_CHANNEL_ID'; 
   web.chat.postMessage({
     channel: channelId,
     text: 'タイマーのメッセージです',
@@ -40,8 +38,20 @@ app.post("/", function(req, res, next) {
   res.send('タイマーアプリが稼働中です。');
 })
 
-const port = process.env?.PORT || 80;
+
+const send_start_message  =   async()=>{
+  try {
+    const result = await web.chat.postMessage({
+      channel: CHANNEL_ID,  text: 'タイマーアプリが起動しました',
+    });
+  } catch (e) {
+    console.error(e);
+    console.error('メッセージの送信に失敗しました');
+  }
+}
+
 app.listen(port, () => {
   console.log(`サーバーがポート ${port} で起動しました。`);
+  send_start_message();
 });
 
