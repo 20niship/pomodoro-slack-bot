@@ -23,19 +23,30 @@ function sendTimerMessage() {
 }
 
 app.post("/", function(req, res, next) {
-    let payload = req.body;
-    res.status(200);
-    console.log(payload)
+    const body = req.body;
+    const type = body?.type || "";
+    console.log(body)
+    console.log(type)
 
-    if (payload.event.type === "app_mention") {
-        if (payload.event.text.includes("tell me a joke")) {
+    switch(type){
+      case "url_verification":
+      {
+        res.status(200);
+        res.end(body.challenge);
+        console.log("Challenge!!")
+        break;
+      }
+
+      case "app_mention":
+        if (body.event.text.includes("tell me a joke")) {
             // Make call to chat.postMessage using bot's token
-          console.log("A", payload)
-
         }
        setTimeout(sendTimerMessage, 3000); // 3秒ごとにメッセージを送信
+       break;
+
+      default:
+       res.send('タイマーアプリが稼働中です。');
     }
-  res.send('タイマーアプリが稼働中です。');
 })
 
 
