@@ -22,9 +22,28 @@ function sendTimerMessage() {
   });
 }
 
+const send_message=   async(channel:string, text:string)=>{
+  try {
+    const result = await web.chat.postMessage({channel, text});
+  } catch (e) {
+    console.error(e);
+    console.error('メッセージの送信に失敗しました');
+  }
+}
+
 app.post("/", function(req, res, next) {
     const body = req.body;
     const type = body?.type || "";
+    const token = body?.token || "";
+    const event = body?.event || {};
+    const event_type = event?.type || "";
+
+    if(!token){
+      console.error("token not set error!");
+      res.writeHead(405).end('Token must not be undefined');
+      return;
+    }
+
     console.log(body)
     console.log(type)
 
@@ -34,21 +53,40 @@ app.post("/", function(req, res, next) {
         res.status(200);
         res.end(body.challenge);
         console.log("Challenge!!")
-        break;
+        return;
       }
 
-      case "app_mention":
-        if (body.event.text.includes("tell me a joke")) {
-            // Make call to chat.postMessage using bot's token
+      case "event_callback":
+        switch(event_type)
+      {
+        case "message":
+        const text = (event?.text ||"")as string;
+        const is_bot = 'bot_id' in event;
+        const channel = (event?.channel || "")as string;
+        if(is_bot) break;
+        if(text === "" || channel===""){
+          res.status(500);
+          res.send("channel or message is null");
+          return;
         }
-       setTimeout(sendTimerMessage, 3000); // 3秒ごとにメッセージを送信
+
+        send_message(channel, text);
+
+       // setTimeout(sendTimerMessage, 3000); // 3秒ごとにメッセージを送信
        break;
+
+
+       default:
+
+      }
 
       default:
        res.send('タイマーアプリが稼働中です。');
     }
-})
 
+  res.status(200);
+  res.end();
+})
 
 const send_start_message  =   async()=>{
   try {
