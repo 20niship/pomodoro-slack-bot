@@ -1,9 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import bodyParser from 'body-parser';
-import dotenv from 'dotenv';
 import { WebClient } from '@slack/web-api';
 
-dotenv.config();
 const slackToken = process.env.SLACK_API_TOKEN;
 const port = process.env?.PORT || 80;
 const CHANNEL_ID = process.env.CHANNEL_ID as string;
