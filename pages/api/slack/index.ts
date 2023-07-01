@@ -1,4 +1,4 @@
-import express, { Request, Response } from 'express';
+import { NextApiRequest, NextApiResponse } from 'next'
 import bodyParser from 'body-parser';
 import dotenv from 'dotenv';
 import { WebClient } from '@slack/web-api';
@@ -7,10 +7,6 @@ dotenv.config();
 const slackToken = process.env.SLACK_API_TOKEN;
 const port = process.env?.PORT || 80;
 const CHANNEL_ID = process.env.CHANNEL_ID as string;
-
-const app = express();
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
 
 const web = new WebClient(slackToken);
 
@@ -31,7 +27,12 @@ const send_message = async (channel: string, text: string) => {
   }
 }
 
-app.post("/", function(req, res, next) {
+export default function handler(req: NextApiRequest, res: NextApiResponse) {
+  if(req.method !== 'POST') {
+    res.status(405).end('Method Not Allowed');
+    return;
+  }
+
   const body = req.body;
   const type = body?.type || "";
   const token = body?.token || "";
@@ -40,7 +41,7 @@ app.post("/", function(req, res, next) {
 
   if (!token) {
     console.error("token not set error!");
-    res.writeHead(405).end('Token must not be undefined');
+    res.status(405).send('Token must not be undefined');
     return;
   }
 
@@ -85,7 +86,7 @@ app.post("/", function(req, res, next) {
 
   res.status(200);
   res.end();
-})
+}
 
 const send_start_message = async () => {
   try {
@@ -98,8 +99,5 @@ const send_start_message = async () => {
   }
 }
 
-app.listen(port, () => {
-  console.log(`サーバーがポート ${port} で起動しました。`);
-  send_start_message();
-});
+send_start_message();
 
